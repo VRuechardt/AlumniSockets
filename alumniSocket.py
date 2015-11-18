@@ -5,7 +5,6 @@ import time
 
 def new_client(client, server):
     print("New client connected and was given id %d" % client['id'])
-    server.send_message_to_all("Hey all, a new client has joined us")
 
 def client_left(client, server):
     print("Client(%d) disconnected" % client['id'])
@@ -37,12 +36,18 @@ def broadcastMessage(userID, conversationID, message):
     c.execute("SELECT userID FROM conversationparticipants WHERE conversationID = ?", (conversationID,))
     conn.commit()
     conversationMembers = [v[0] for v in enumerate(c.fetchall())]
-    print conversationMembers
     #nicht 2
     #if userID in conversationMembers:
+    m = {
+        "content": message,
+        "conversationID": conversationID,
+        "timestamp": t,
+        "userID": userID
+    }
+
     for i in server.clients:
         if i['id'] in conversationMembers and i['id'] is not userID:
-            server.send_message(i,message)
+            server.send_message(i, json.dumps(m))
 
 server = WebsocketServer(9001)
 server.set_fn_new_client(new_client)
