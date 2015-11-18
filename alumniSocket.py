@@ -1,6 +1,8 @@
 from websocket_server import WebsocketServer
 import sqlite3
 import json
+import time
+
 def new_client(client, server):
     print("New client connected and was given id %d" % client['id'])
     server.send_message_to_all("Hey all, a new client has joined us")
@@ -30,8 +32,10 @@ def message_received(client, server, message):
 def broadcastMessage(userID, conversationID, message):
     conn = sqlite3.connect("../alumniBackend/alumni.db")
     c = conn.cursor()
+    t = int(round(time.time() * 1000))
+    c.execute("INSERT INTO messages (conversationID, userID, content, timestamp) VALUES (?, ?, ?, ?)", (conversationID,userID,message,t))
     c.execute("SELECT userID FROM conversationparticipants WHERE conversationID = ?", (conversationID,))
-    #c.execute("INSERT INTO ")
+    conn.commit()
     conversationMembers = [v[0] for v in enumerate(c.fetchall())]
     print conversationMembers
     #nicht 2
