@@ -17,14 +17,28 @@ def message_received(client, server, message):
         c.execute("SELECT email FROM users WHERE logincode = ?", (message['code'], ))
         result = c.fetchall()
         if len(result) is 1:
-            client.update({'email': result[0][0]})
+            c.execute("SELECT id FROM users WHERE email = ?", (result[0][0],))
+            r = c.fetchone()
+            client.update({'id': r[0]})
+            conn.close()
         else:
             server.send_message(client,"error width autentication")
-    if message['task'] == 'msg':
-        for i in server.clients:
-            if i['email'] == message['email']:
-                print('sending to: ', i['email'])
-                server.send_message(i ,message['message'])
+            conn.close()
+    elif message['task'] == 'msg':
+        broadcastMessage(client['id'],message['id'] ,message['message'])
+
+def broadcastMessage(userID, conversationID, message):
+    conn = sqlite3.connect("../alumniBackend/alumni.db")
+    c = conn.cursor()
+    c.execute("SELECT userID FROM conversationparticipants WHERE conversationID = ?", (conversationID,))
+    #c.execute("INSERT INTO ")
+    conversationMembers = [v[0] for v in enumerate(c.fetchall())]
+    print conversationMembers
+    #nicht 2
+    #if userID in conversationMembers:
+    for i in server.clients:
+        if i['id'] in conversationMembers and i['id'] is not userID:
+            server.send_message(i,message)
 
 server = WebsocketServer(9001)
 server.set_fn_new_client(new_client)
