@@ -49,7 +49,7 @@ def broadcastMessage(userID, conversationID, message):
         if i['id'] in conversationMembers and i['id'] is not userID:
             server.send_message(i, json.dumps(m))
 
-server = WebsocketServer(9001)
+server = WebsocketServer(9001, '0.0.0.0')
 server.set_fn_new_client(new_client)
 server.set_fn_client_left(client_left)
 server.set_fn_message_received(message_received)
